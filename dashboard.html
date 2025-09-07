@@ -47,7 +47,6 @@
         <p><strong>Total Classes:</strong> <span id="modalTotalClasses">0</span></p>
         <p><strong>Leaves:</strong> <span id="modalLeaves">0</span></p>
         <p><strong>Attendance:</strong> <span id="modalAttendance">0</span></p>
-        <p id="modalLeaveDates"><strong>Leave Dates:</strong> None</p>
       </div>
     </div>
   </div>
@@ -81,7 +80,6 @@
   const modalTotalClasses = document.getElementById("modalTotalClasses");
   const modalLeaves = document.getElementById("modalLeaves");
   const modalAttendance = document.getElementById("modalAttendance");
-  const modalLeaveDates = document.getElementById("modalLeaveDates");
 
   if (!admissionNumber) {
     studentInfoSection.innerHTML =
@@ -120,11 +118,10 @@
     }
   }
 
-  function openAttendanceModal(totalClasses, leaves, attendance, leaveDates="None") {
+  function openAttendanceModal(totalClasses, leaves, attendance) {
     modalTotalClasses.textContent = totalClasses || 0;
     modalLeaves.textContent = leaves || 0;
     modalAttendance.textContent = attendance || 0;
-    modalLeaveDates.innerHTML = `<strong>Leave Dates:</strong> ${leaveDates}`;
     attendanceModal.classList.remove("hidden");
   }
 
@@ -136,7 +133,7 @@
     try {
       const improvementsSnap = await get(ref(db, `improvements/${admNo}`));
       if (!improvementsSnap.exists()) {
-        improvementsTable.innerHTML = `<tr><td class="p-3 text-center text-gray-400 italic" colspan="7">No improvements records found.</td></tr>`;
+        improvementsTable.innerHTML = `<tr><td class="p-3 text-center text-gray-400 italic" colspan="6">No improvements records found.</td></tr>`;
         improvementsCards.innerHTML = `<p class="text-center text-gray-400 italic">No improvements records found.</p>`;
         return;
       }
@@ -177,9 +174,6 @@
         const monthLabel = monthNames[row.month] || `Month ${row.month}`;
         const fieldKeys = row.status === "Hafiz" ? ["H1","H2","H3"] : ["1","2","3"];
         const fieldLabels = row.status === "Hafiz" ? ["1 മുറാജഅ","2 മുറാജഅ","3 മുറാജഅ"] : ["പാഠം","5 പാഠം","മുറാജഅ"];
-        const leaveDates = row.improvements.leaveDates && row.improvements.leaveDates.length>0 
-          ? row.improvements.leaveDates.join(", ") 
-          : "None";
 
         tableHTML += `
           <tr class="border-b hover:bg-gray-50">
@@ -192,8 +186,7 @@
               <button class="attendanceBtn text-blue-600 underline" 
                 data-classes="${row.improvements.totalClasses || 0}" 
                 data-leaves="${row.improvements.leaves || 0}" 
-                data-attendance="${row.improvements.attendance || 0}"
-                data-leavedates="${leaveDates}">
+                data-attendance="${row.improvements.attendance || 0}">
                 📊 View
               </button>
             </td>
@@ -206,14 +199,13 @@
 
       improvementsTable.innerHTML = tableHTML;
 
-      // Add desktop attendance event listeners
+      // Desktop attendance event
       document.querySelectorAll(".attendanceBtn").forEach(btn=>{
         btn.addEventListener("click", ()=>{
           openAttendanceModal(
             btn.dataset.classes,
             btn.dataset.leaves,
-            btn.dataset.attendance,
-            btn.dataset.leavedates
+            btn.dataset.attendance
           );
         });
       });
@@ -224,9 +216,6 @@
         const monthLabel = monthNames[row.month] || `Month ${row.month}`;
         const fieldKeys = row.status === "Hafiz" ? ["H1","H2","H3"] : ["1","2","3"];
         const fieldLabels = row.status === "Hafiz" ? ["1 മുറാജഅ","2 മുറാജഅ","3 മുറാജഅ"] : ["പാഠം","5 പാഠം","മുറാജഅ"];
-        const leaveDates = row.improvements.leaveDates && row.improvements.leaveDates.length>0 
-          ? row.improvements.leaveDates.join(", ") 
-          : "None";
 
         cardsHTML += `
           <div class="bg-white rounded-xl shadow p-4 border border-gray-200">
@@ -241,8 +230,7 @@
               <button class="attendanceBtn text-blue-600 underline mt-2" 
                 data-classes="${row.improvements.totalClasses || 0}" 
                 data-leaves="${row.improvements.leaves || 0}" 
-                data-attendance="${row.improvements.attendance || 0}"
-                data-leavedates="${leaveDates}">
+                data-attendance="${row.improvements.attendance || 0}">
                 📊 View Attendance
               </button>
             </div>
@@ -252,14 +240,13 @@
 
       improvementsCards.innerHTML = cardsHTML;
 
-      // Add mobile attendance event listeners
+      // Mobile attendance event
       improvementsCards.querySelectorAll(".attendanceBtn").forEach(btn => {
         btn.addEventListener("click", () => {
           openAttendanceModal(
             btn.dataset.classes,
             btn.dataset.leaves,
-            btn.dataset.attendance,
-            btn.dataset.leavedates
+            btn.dataset.attendance
           );
         });
       });
