@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Parent Login - Hifz Chart Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen flex flex-col justify-center items-center p-4 sm:p-6"
+  >
+    <main
+      class="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-10 border border-gray-200"
+    >
+      <h1
+        class="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-6 text-center"
+      >
+        Parent Login
+      </h1>
+
+      <form id="loginForm" class="space-y-6" novalidate>
+        <div class="space-y-1">
+          <label for="admissionNumber" class="block font-medium text-gray-700"
+            >Admission Number</label
+          >
+          <input
+            type="text"
+            id="admissionNumber"
+            required
+            placeholder="Enter Admission Number"
+            class="w-full input-field"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="dob" class="block font-medium text-gray-700"
+            >Date of Birth</label
+          >
+          <input type="date" id="dob" required class="w-full input-field" />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white rounded-xl px-6 py-3 font-semibold shadow-md hover:bg-blue-700 hover:shadow-lg transition transform hover:-translate-y-0.5"
+        >
+          Login
+        </button>
+
+        <p
+          id="errorMsg"
+          class="text-red-600 text-sm mt-2 hidden text-center"
+        ></p>
+      </form>
+
+      <p class="mt-6 text-center text-gray-500 text-sm sm:text-base">
+        2025 Hifz Report Management System
+      </p>
+    </main>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+      import {
+        getDatabase,
+        ref,
+        get,
+      } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBv1446L82JoCaHa_sbsfDh9fb3fVGM2h8",
+        authDomain: "hifz-monthly-report.firebaseapp.com",
+        databaseURL: "https://hifz-monthly-report-default-rtdb.firebaseio.com",
+        projectId: "hifz-monthly-report",
+        storageBucket: "hifz-monthly-report.firebasestorage.app",
+        messagingSenderId: "303055298705",
+        appId: "1:303055298705:web:7098446d7622e580559f30",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getDatabase(app);
+
+      const loginForm = document.getElementById("loginForm");
+      const errorMsg = document.getElementById("errorMsg");
+
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        errorMsg.classList.add("hidden");
+
+        const admissionNumber = document
+          .getElementById("admissionNumber")
+          .value.trim();
+        const dob = document.getElementById("dob").value;
+
+        if (!admissionNumber || !dob) {
+          showError("Please fill out all fields.");
+          return;
+        }
+
+        try {
+          const studentRef = ref(db, `students/${admissionNumber}`);
+          const snapshot = await get(studentRef);
+
+          if (!snapshot.exists()) {
+            showError("Invalid Admission Number or Date of Birth.");
+            return;
+          }
+
+          const student = snapshot.val();
+          if (student.dob !== dob) {
+            showError("Invalid Admission Number or Date of Birth.");
+            return;
+          }
+
+          window.location.href = `dashboard.html?admissionNumber=${encodeURIComponent(
+            admissionNumber
+          )}`;
+        } catch (error) {
+          showError("Error during login: " + error.message);
+        }
+      });
+
+      function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.classList.remove("hidden");
+      }
+    </script>
+
+    <style>
+      .input-field {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 0.75rem;
+        border: 1px solid #d1d5db;
+        outline: none;
+        font-size: 1rem;
+        transition: all 0.2s;
+        background-color: #f9fafb;
+      }
+      .input-field:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgb(37 99 235 / 0.2);
+        background-color: #fff;
+      }
+      button:focus {
+        outline: none;
+        ring-offset: 2px;
+        ring: 2px;
+        ring-blue-500;
+      }
+    </style>
+  </body>
+</html>
