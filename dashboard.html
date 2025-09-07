@@ -54,11 +54,7 @@
         </div>
 
         <!-- Card view for mobile -->
-        <div class="sm:hidden space-y-4" id="improvementsCards">
-          <!-- Mobile skeletons -->
-          <div class="bg-gray-100 animate-pulse h-24 rounded-xl"></div>
-          <div class="bg-gray-100 animate-pulse h-24 rounded-xl"></div>
-        </div>
+        <div class="sm:hidden space-y-4" id="improvementsCards"></div>
       </section>
     </main>
 
@@ -154,18 +150,20 @@
           rows.sort((a, b) => a.year - b.year || a.month - b.month);
 
           // --- Table for desktop ---
-          let tableHTML = "";
-          let lastStatus = null;
-          rows.forEach((row) => {
-            if (lastStatus !== null && lastStatus !== row.status) {
-              tableHTML += `
-              <tr><td colspan="6" class="bg-gray-100 text-center py-1 font-semibold text-gray-600">
-                Status changed to ${row.status}
-              </td></tr>
-            `;
-            }
-            lastStatus = row.status;
+          let tableHTML = `
+            <thead class="bg-gray-100 sticky top-0">
+              <tr>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Year</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Month</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Field 1</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Field 2</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Field 3</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Status</th>
+              </tr>
+            </thead>
+          `;
 
+          rows.forEach((row) => {
             const monthNames = [
               "Jan",
               "Feb",
@@ -181,44 +179,30 @@
               "Dec",
             ];
             const monthLabel = monthNames[row.month] || `Month ${row.month}`;
-            const fields =
-              row.status === "Hafiz" ? ["H1", "H2", "H3"] : ["1", "2", "3"];
-            const labelHeaders =
-              row.status === "Hafiz"
-                ? ["H1", "H2", "H3"]
-                : ["Improvement 1/H1", "Improvement 2/H2", "Improvement 3/H3"];
 
-            if (!tableHTML.includes("thead") || lastStatus !== row.status) {
-              tableHTML += `
-              <thead class="bg-gray-100 sticky top-0">
-                <tr>
-                  <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Year</th>
-                  <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Month</th>
-                  <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">${labelHeaders[0]}</th>
-                  <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">${labelHeaders[1]}</th>
-                  <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">${labelHeaders[2]}</th>
-                  <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Status</th>
-                </tr>
-              </thead>
-            `;
-            }
+            const fieldKeys =
+              row.status === "Hafiz" ? ["H1", "H2", "H3"] : ["1", "2", "3"];
+            const fieldLabels =
+              row.status === "Hafiz"
+                ? ["1 മുറാജഅ", "2 മുറാജഅ", "3 മുറാജഅ"]
+                : ["പാഠം", "5 പാഠം", "മുറാജഅ"];
 
             tableHTML += `
-            <tr class="border-b border-gray-200 hover:bg-gray-50 transition-transform duration-150 hover:scale-[1.01]">
-              <td class="p-2 sm:p-3">${row.year}</td>
-              <td class="p-2 sm:p-3">${monthLabel}</td>
-              <td class="p-2 sm:p-3">${row.improvements[fields[0]] || ""}</td>
-              <td class="p-2 sm:p-3">${row.improvements[fields[1]] || ""}</td>
-              <td class="p-2 sm:p-3">${row.improvements[fields[2]] || ""}</td>
-              <td class="p-2 sm:p-3">
-                <span class="px-2 sm:px-3 py-1 rounded-full text-sm font-semibold ${
-                  row.status === "Hafiz"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }">${row.status}</span>
-              </td>
-            </tr>
-          `;
+              <tr class="border-b border-gray-200 hover:bg-gray-50 transition-transform duration-150 hover:scale-[1.01]">
+                <td class="p-2 sm:p-3">${row.year}</td>
+                <td class="p-2 sm:p-3">${monthLabel}</td>
+                <td class="p-2 sm:p-3"><strong>${fieldLabels[0]}:</strong> ${row.improvements[fieldKeys[0]] || ""}</td>
+                <td class="p-2 sm:p-3"><strong>${fieldLabels[1]}:</strong> ${row.improvements[fieldKeys[1]] || ""}</td>
+                <td class="p-2 sm:p-3"><strong>${fieldLabels[2]}:</strong> ${row.improvements[fieldKeys[2]] || ""}</td>
+                <td class="p-2 sm:p-3">
+                  <span class="px-2 sm:px-3 py-1 rounded-full text-sm font-semibold ${
+                    row.status === "Hafiz"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }">${row.status}</span>
+                </td>
+              </tr>
+            `;
           });
 
           improvementsTable.innerHTML = tableHTML;
@@ -241,32 +225,37 @@
               "Dec",
             ];
             const monthLabel = monthNames[row.month] || `Month ${row.month}`;
-            const fields =
+
+            const fieldKeys =
               row.status === "Hafiz" ? ["H1", "H2", "H3"] : ["1", "2", "3"];
+            const fieldLabels =
+              row.status === "Hafiz"
+                ? ["1 മുറാജഅ", "2 മുറാജഅ", "3 മുറാജഅ"]
+                : ["പാഠം", "5 പാഠം", "മുറാജഅ"];
 
             cardsHTML += `
-            <div class="bg-white rounded-xl shadow p-4 border border-gray-200 transition-transform duration-150 hover:scale-[1.02]">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-semibold">${monthLabel}, ${row.year}</span>
-                <span class="px-2 py-1 rounded-full text-sm font-semibold ${
-                  row.status === "Hafiz"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-yellow-100 text-yellow-800"
-                }">${row.status}</span>
+              <div class="bg-white rounded-xl shadow p-4 border border-gray-200 transition-transform duration-150 hover:scale-[1.02]">
+                <div class="flex justify-between items-center mb-2">
+                  <span class="font-semibold">${monthLabel}, ${row.year}</span>
+                  <span class="px-2 py-1 rounded-full text-sm font-semibold ${
+                    row.status === "Hafiz"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }">${row.status}</span>
+                </div>
+                <div class="space-y-1 text-gray-700 text-sm">
+                  <p><strong>${fieldLabels[0]}:</strong> ${
+              row.improvements[fieldKeys[0]] || "-"
+            }</p>
+                  <p><strong>${fieldLabels[1]}:</strong> ${
+              row.improvements[fieldKeys[1]] || "-"
+            }</p>
+                  <p><strong>${fieldLabels[2]}:</strong> ${
+              row.improvements[fieldKeys[2]] || "-"
+            }</p>
+                </div>
               </div>
-              <div class="space-y-1 text-gray-700 text-sm">
-                <p><strong>${fields[0]}:</strong> ${
-              row.improvements[fields[0]] || "-"
-            }</p>
-                <p><strong>${fields[1]}:</strong> ${
-              row.improvements[fields[1]] || "-"
-            }</p>
-                <p><strong>${fields[2]}:</strong> ${
-              row.improvements[fields[2]] || "-"
-            }</p>
-              </div>
-            </div>
-          `;
+            `;
           });
 
           improvementsCards.innerHTML = cardsHTML;
