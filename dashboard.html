@@ -6,31 +6,16 @@
     <title>Parent Dashboard - Hifz Chart Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body
-    class="bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen p-4 sm:p-6"
-  >
-    <main
-      class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-10 border border-gray-200"
-    >
-      <h1
-        class="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-6 text-center"
-      >
+  <body class="bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen p-4 sm:p-6">
+    <main class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-10 border border-gray-200">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-gray-800 mb-6 text-center">
         Student Dashboard
       </h1>
 
       <!-- Student Info -->
-      <section
-        id="studentInfo"
-        class="mb-8 p-4 sm:p-6 bg-blue-50 rounded-2xl shadow-inner border border-blue-200 animate-pulse"
-      >
-        <h2
-          class="text-xl sm:text-2xl font-semibold mb-3 text-center text-blue-800"
-        >
-          Loading student details...
-        </h2>
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto text-gray-400"
-        >
+      <section id="studentInfo" class="mb-8 p-4 sm:p-6 bg-blue-50 rounded-2xl shadow-inner border border-blue-200 animate-pulse">
+        <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-center text-blue-800">Loading student details...</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto text-gray-400">
           <div class="h-4 bg-gray-200 rounded w-3/4"></div>
           <div class="h-4 bg-gray-200 rounded w-1/2"></div>
           <div class="h-4 bg-gray-200 rounded w-1/3 sm:col-span-2"></div>
@@ -44,13 +29,8 @@
         </h2>
 
         <!-- Table for large screens -->
-        <div
-          class="hidden sm:block overflow-x-auto border border-gray-300 rounded-lg shadow-sm bg-white"
-        >
-          <table
-            class="min-w-full text-gray-700"
-            id="improvementsTable"
-          ></table>
+        <div class="hidden sm:block overflow-x-auto border border-gray-300 rounded-lg shadow-sm bg-white">
+          <table class="min-w-full text-gray-700" id="improvementsTable"></table>
         </div>
 
         <!-- Card view for mobile -->
@@ -58,13 +38,22 @@
       </section>
     </main>
 
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="fixed inset-0 bg-black/50 flex justify-center items-center p-6 hidden z-50">
+      <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
+        <button id="closeAttendanceModal" class="absolute top-3 right-3 text-2xl font-bold cursor-pointer">&times;</button>
+        <h3 class="text-xl font-bold mb-4 text-gray-800">Attendance Info</h3>
+        <div class="space-y-2 text-gray-700">
+          <p><strong>Total Classes:</strong> <span id="modalTotalClasses">0</span></p>
+          <p><strong>Leaves:</strong> <span id="modalLeaves">0</span></p>
+          <p><strong>Attendance:</strong> <span id="modalAttendance">0</span></p>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-      import {
-        getDatabase,
-        ref,
-        get,
-      } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
+      import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBv1446L82JoCaHa_sbsfDh9fb3fVGM2h8",
@@ -86,6 +75,12 @@
       const improvementsTable = document.getElementById("improvementsTable");
       const improvementsCards = document.getElementById("improvementsCards");
 
+      const attendanceModal = document.getElementById("attendanceModal");
+      const closeAttendanceModal = document.getElementById("closeAttendanceModal");
+      const modalTotalClasses = document.getElementById("modalTotalClasses");
+      const modalLeaves = document.getElementById("modalLeaves");
+      const modalAttendance = document.getElementById("modalAttendance");
+
       if (!admissionNumber) {
         studentInfoSection.innerHTML =
           '<p class="text-center text-red-600 font-semibold">Admission Number is missing. Please login again.</p>';
@@ -105,25 +100,34 @@
 
           studentInfoSection.classList.remove("animate-pulse");
           studentInfoSection.innerHTML = `
-          <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-center text-blue-800">${
-            student.name
-          } (${student.admissionNumber})</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 max-w-md mx-auto text-sm sm:text-base">
-            <p><strong>Class:</strong> ${student.class}</p>
-            <p><strong>Date of Birth:</strong> ${student.dob}</p>
-            <p class="sm:col-span-2"><strong>Current Status:</strong> <span class="${
-              student.hafizStatus === "Hafiz"
-                ? "text-green-600 font-semibold"
-                : "text-yellow-600 font-semibold"
-            }">${student.hafizStatus}</span></p>
-          </div>
-        `;
+            <h2 class="text-xl sm:text-2xl font-semibold mb-3 text-center text-blue-800">${student.name} (${student.admissionNumber})</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 max-w-md mx-auto text-sm sm:text-base">
+              <p><strong>Class:</strong> ${student.class}</p>
+              <p><strong>Date of Birth:</strong> ${student.dob}</p>
+              <p class="sm:col-span-2"><strong>Current Status:</strong> <span class="${
+                student.hafizStatus === "Hafiz"
+                  ? "text-green-600 font-semibold"
+                  : "text-yellow-600 font-semibold"
+              }">${student.hafizStatus}</span></p>
+            </div>
+          `;
 
           loadImprovementsHistory(admNo);
         } catch (error) {
           studentInfoSection.innerHTML = `<p class="text-center text-red-600 font-semibold">Error loading student data: ${error.message}</p>`;
         }
       }
+
+      function openAttendanceModal(totalClasses, leaves, attendance) {
+        modalTotalClasses.textContent = totalClasses || 0;
+        modalLeaves.textContent = leaves || 0;
+        modalAttendance.textContent = attendance || 0;
+        attendanceModal.classList.remove("hidden");
+      }
+
+      closeAttendanceModal.addEventListener("click", () => {
+        attendanceModal.classList.add("hidden");
+      });
 
       async function loadImprovementsHistory(admNo) {
         try {
@@ -149,57 +153,45 @@
 
           rows.sort((a, b) => a.year - b.year || a.month - b.month);
 
+          const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
           // --- Table for desktop ---
           let tableHTML = `
             <thead class="bg-gray-100 sticky top-0">
               <tr>
-                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Year</th>
-                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Month</th>
-                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Field 1</th>
-                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Field 2</th>
-                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Field 3</th>
-                <th class="p-2 sm:p-3 text-left font-semibold border-b border-gray-300">Status</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Year</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Month</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Field 1</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Field 2</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Field 3</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Attendance Info</th>
+                <th class="p-2 sm:p-3 text-left font-semibold border-b">Status</th>
               </tr>
             </thead>
           `;
 
           rows.forEach((row) => {
-            const monthNames = [
-              "Jan",
-              "Feb",
-              "Mar",
-              "Apr",
-              "May",
-              "Jun",
-              "Jul",
-              "Aug",
-              "Sep",
-              "Oct",
-              "Nov",
-              "Dec",
-            ];
             const monthLabel = monthNames[row.month] || `Month ${row.month}`;
-
-            const fieldKeys =
-              row.status === "Hafiz" ? ["H1", "H2", "H3"] : ["1", "2", "3"];
-            const fieldLabels =
-              row.status === "Hafiz"
-                ? ["1 മുറാജഅ", "2 മുറാജഅ", "3 മുറാജഅ"]
-                : ["പാഠം", "5 പാഠം", "മുറാജഅ"];
+            const fieldKeys = row.status === "Hafiz" ? ["H1","H2","H3"] : ["1","2","3"];
+            const fieldLabels = row.status === "Hafiz" ? ["1 മുറാജഅ","2 മുറാജഅ","3 മുറാജഅ"] : ["പാഠം","5 പാഠം","മുറാജഅ"];
 
             tableHTML += `
-              <tr class="border-b border-gray-200 hover:bg-gray-50 transition-transform duration-150 hover:scale-[1.01]">
+              <tr class="border-b hover:bg-gray-50">
                 <td class="p-2 sm:p-3">${row.year}</td>
                 <td class="p-2 sm:p-3">${monthLabel}</td>
-                <td class="p-2 sm:p-3"><strong>${fieldLabels[0]}:</strong> ${row.improvements[fieldKeys[0]] || ""}</td>
-                <td class="p-2 sm:p-3"><strong>${fieldLabels[1]}:</strong> ${row.improvements[fieldKeys[1]] || ""}</td>
-                <td class="p-2 sm:p-3"><strong>${fieldLabels[2]}:</strong> ${row.improvements[fieldKeys[2]] || ""}</td>
+                <td class="p-2 sm:p-3"><strong>${fieldLabels[0]}:</strong> ${row.improvements[fieldKeys[0]] || "-"}</td>
+                <td class="p-2 sm:p-3"><strong>${fieldLabels[1]}:</strong> ${row.improvements[fieldKeys[1]] || "-"}</td>
+                <td class="p-2 sm:p-3"><strong>${fieldLabels[2]}:</strong> ${row.improvements[fieldKeys[2]] || "-"}</td>
                 <td class="p-2 sm:p-3">
-                  <span class="px-2 sm:px-3 py-1 rounded-full text-sm font-semibold ${
-                    row.status === "Hafiz"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }">${row.status}</span>
+                  <button class="attendanceBtn text-blue-600 underline" 
+                    data-classes="${row.improvements.totalClasses || 0}" 
+                    data-leaves="${row.improvements.leaves || 0}" 
+                    data-attendance="${row.improvements.attendance || 0}">
+                    📊 View
+                  </button>
+                </td>
+                <td class="p-2 sm:p-3">
+                  <span class="px-2 sm:px-3 py-1 rounded-full text-sm font-semibold ${row.status==='Hafiz'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800'}">${row.status}</span>
                 </td>
               </tr>
             `;
@@ -207,75 +199,61 @@
 
           improvementsTable.innerHTML = tableHTML;
 
+          // Add desktop attendance event listeners
+          document.querySelectorAll(".attendanceBtn").forEach(btn=>{
+            btn.addEventListener("click", ()=>{
+              openAttendanceModal(btn.dataset.classes, btn.dataset.leaves, btn.dataset.attendance);
+            });
+          });
+
           // --- Card view for mobile ---
           let cardsHTML = "";
           rows.forEach((row) => {
-            const monthNames = [
-              "Jan",
-              "Feb",
-              "Mar",
-              "Apr",
-              "May",
-              "Jun",
-              "Jul",
-              "Aug",
-              "Sep",
-              "Oct",
-              "Nov",
-              "Dec",
-            ];
             const monthLabel = monthNames[row.month] || `Month ${row.month}`;
-
-            const fieldKeys =
-              row.status === "Hafiz" ? ["H1", "H2", "H3"] : ["1", "2", "3"];
-            const fieldLabels =
-              row.status === "Hafiz"
-                ? ["1 മുറാജഅ", "2 മുറാജഅ", "3 മുറാജഅ"]
-                : ["പാഠം", "5 പാഠം", "മുറാജഅ"];
+            const fieldKeys = row.status === "Hafiz" ? ["H1","H2","H3"] : ["1","2","3"];
+            const fieldLabels = row.status === "Hafiz" ? ["1 മുറാജഅ","2 മുറാജഅ","3 മുറാജഅ"] : ["പാഠം","5 പാഠം","മുറാജഅ"];
 
             cardsHTML += `
-              <div class="bg-white rounded-xl shadow p-4 border border-gray-200 transition-transform duration-150 hover:scale-[1.02]">
+              <div class="bg-white rounded-xl shadow p-4 border border-gray-200">
                 <div class="flex justify-between items-center mb-2">
                   <span class="font-semibold">${monthLabel}, ${row.year}</span>
-                  <span class="px-2 py-1 rounded-full text-sm font-semibold ${
-                    row.status === "Hafiz"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }">${row.status}</span>
+                  <span class="px-2 py-1 rounded-full text-sm font-semibold ${row.status==='Hafiz'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800'}">${row.status}</span>
                 </div>
                 <div class="space-y-1 text-gray-700 text-sm">
-                  <p><strong>${fieldLabels[0]}:</strong> ${
-              row.improvements[fieldKeys[0]] || "-"
-            }</p>
-                  <p><strong>${fieldLabels[1]}:</strong> ${
-              row.improvements[fieldKeys[1]] || "-"
-            }</p>
-                  <p><strong>${fieldLabels[2]}:</strong> ${
-              row.improvements[fieldKeys[2]] || "-"
-            }</p>
+                  <p><strong>${fieldLabels[0]}:</strong> ${row.improvements[fieldKeys[0]] || "-"}</p>
+                  <p><strong>${fieldLabels[1]}:</strong> ${row.improvements[fieldKeys[1]] || "-"}</p>
+                  <p><strong>${fieldLabels[2]}:</strong> ${row.improvements[fieldKeys[2]] || "-"}</p>
+                  <button class="attendanceBtn text-blue-600 underline mt-2" 
+                    data-classes="${row.improvements.totalClasses || 0}" 
+                    data-leaves="${row.improvements.leaves || 0}" 
+                    data-attendance="${row.improvements.attendance || 0}">
+                    📊 View Attendance
+                  </button>
                 </div>
               </div>
             `;
           });
 
           improvementsCards.innerHTML = cardsHTML;
+
+         // Add mobile attendance event listeners (after cards are added)
+improvementsCards.querySelectorAll(".attendanceBtn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    openAttendanceModal(btn.dataset.classes, btn.dataset.leaves, btn.dataset.attendance);
+  });
+});
+
+
         } catch (error) {
-          improvementsTable.innerHTML = `<tr><td class="p-3 text-center text-red-600 font-semibold" colspan="6">Error loading improvements: ${error.message}</td></tr>`;
+          improvementsTable.innerHTML = `<tr><td class="p-3 text-center text-red-600 font-semibold" colspan="7">Error loading improvements: ${error.message}</td></tr>`;
           improvementsCards.innerHTML = `<p class="text-center text-red-600 font-semibold">${error.message}</p>`;
         }
       }
     </script>
 
     <style>
-      table th,
-      table td {
-        word-break: break-word;
-      }
-      @media (max-width: 640px) {
-        .overflow-x-auto {
-          overflow-x: auto;
-        }
-      }
+      table th, table td { word-break: break-word; }
+      @media (max-width: 640px){ .overflow-x-auto { overflow-x: auto; } }
     </style>
   </body>
 </html>
